@@ -118,7 +118,8 @@ void APP_Tasks(void) {
     static uint32_t     t1 = 0;
     static uint32_t     tSw1 = 0;
     
-    if(!SWITCH1_Get() || !SWITCH2_Get())
+    if(!SWITCH1_Get() || !SWITCH2_Get()
+             || !SWITCH3_Get())
     {
         if( SYS_TMR_TickCountGet() - tSw1 >= SYS_TMR_TickCounterFrequencyGet() * 0.25 )
         {
@@ -132,6 +133,11 @@ void APP_Tasks(void) {
             {
                 strcpy(appData.urlBuffer, "https://api.openweathermap.org/data/2.5/weather?lat=2.902632&lon=101.634693&appid=892a3a878ae1aa72d5b34877caa5b239");
                 while(!SWITCH2_Get());   
+            }
+            else if(!SWITCH3_Get())
+            {
+                strcpy(appData.urlBuffer, "https://myfreedomaintest.website/post/test");
+                while(!SWITCH3_Get());   
             }
             CORETIMER_DelayMs(250);
             appData.state = APP_TCPIP_PROCESS_COMMAND;
