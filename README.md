@@ -1,7 +1,7 @@
 # TCP Client WolfSSL
 Environment:
 1. Board: PIC32MZ Curiosity V2
-2. XC32 v2.5
+2. XC32 v3.0
 3. Harmony v3
 
 Decription
