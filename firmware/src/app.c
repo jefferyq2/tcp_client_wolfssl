@@ -111,12 +111,18 @@ void APP_Initialize(void) {
   Remarks:
     See prototype in app.h.
  */
-//char networkBuffer[256];
-char networkBuffer[190];
+char networkBuffer[256];
+//char networkBuffer[190];
 
 void APP_Tasks(void) {
     static uint32_t     t1 = 0;
     static uint32_t     tSw1 = 0;
+    size_t size_dt;
+    static uint8_t body_data[] = "{"
+                                "\"key1\": \"Hi! Are you my server?\","
+                                "\"key2\": 128.0123,"
+                                "\"key3\": true"
+                            "}";
     
     if(!SWITCH1_Get() || !SWITCH2_Get()
              || !SWITCH3_Get())
@@ -127,17 +133,20 @@ void APP_Tasks(void) {
             if(!SWITCH1_Get())
             {
                 strcpy(appData.urlBuffer, "https://api.weatherapi.com/v1/current.json?q=Segamat&key=303fb9ce3b5f40c1ace11052221207");
-                while(!SWITCH1_Get());                
+                while(!SWITCH1_Get());   
+                appData.api_selected = 1;
             }
             else if(!SWITCH2_Get())
             {
                 strcpy(appData.urlBuffer, "https://api.openweathermap.org/data/2.5/weather?lat=2.902632&lon=101.634693&appid=892a3a878ae1aa72d5b34877caa5b239");
                 while(!SWITCH2_Get());   
+                appData.api_selected = 2;
             }
             else if(!SWITCH3_Get())
             {
                 strcpy(appData.urlBuffer, "https://myfreedomaintest.website/post/test");
                 while(!SWITCH3_Get());   
+                appData.api_selected = 3;
             }
             CORETIMER_DelayMs(250);
             appData.state = APP_TCPIP_PROCESS_COMMAND;
@@ -417,9 +426,29 @@ void APP_Tasks(void) {
             if (NET_PRES_SocketWriteIsReady(appData.socket, sizeof (networkBuffer), sizeof (networkBuffer)) == 0) {
                 break;
             }
-            sprintf(networkBuffer, "GET /%s HTTP/1.1\r\n"
+            if( appData.api_selected == 3 )
+            {
+                size_dt = strlen((const char*)body_data);
+                    sprintf(networkBuffer, 
+                        "GET /%s HTTP/1.1\r\n"
+                        "Host: %s\r\n"
+                        "Accept: */*\r\n"
+                        "Connection: keep-alive\r\n"
+                        "Content-Length: %d\r\n"
+                        "\r\n"
+                        "%s"
+                        , appData.path
+                        , appData.host
+                        , (int)size_dt
+                        , body_data);
+                
+            }
+            else
+            {
+                sprintf(networkBuffer, "GET /%s HTTP/1.1\r\n"
                     "Host: %s\r\n"
                     "Connection: close\r\n\r\n", appData.path, appData.host);
+            }
             NET_PRES_SocketWrite(appData.socket, (uint8_t*) networkBuffer, strlen(networkBuffer));
             appData.clearBytesSent += strlen(networkBuffer);
             appData.rawBytesSent += strlen(networkBuffer);
@@ -472,10 +501,31 @@ void APP_Tasks(void) {
         case APP_TCPIP_SEND_REQUEST_SSL:
         {
             memset(networkBuffer, 0, sizeof (networkBuffer));
-            sprintf(networkBuffer, "GET /%s HTTP/1.1\r\n"
-                    "Host: %s\r\n"
-                    "Accept: text/plain\r\n"
-                    "Connection: close\r\n\r\n", appData.path, appData.host);
+            if( appData.api_selected == 3 )
+            {
+                size_dt = strlen((const char*)body_data);
+                    sprintf(networkBuffer, 
+                        "POST /%s HTTP/1.1\r\n"
+//                        "GET /%s HTTP/1.1\r\n"
+                        "Host: %s\r\n"
+                        "Accept: */*\r\n"
+//                        "Connection: keep-alive\r\n"
+                        "Connection: close\r\n"
+                        "Content-Length: %d\r\n"
+                        "\r\n"
+                        "%s"
+                        , appData.path
+                        , appData.host
+                        , (int)size_dt
+                        , body_data);
+                
+            }
+            else{
+                sprintf(networkBuffer, "GET /%s HTTP/1.1\r\n"
+                        "Host: %s\r\n"
+                        "Accept: text/plain\r\n"
+                        "Connection: close\r\n\r\n", appData.path, appData.host);
+            }
             int ret;
             ret = NET_PRES_SocketWrite(appData.socket, (uint8_t*) networkBuffer, strlen(networkBuffer));
             appData.clearBytesSent += ret;

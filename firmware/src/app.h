@@ -106,6 +106,7 @@ typedef struct
     uint8_t queryState;
     int8_t cyasslConnectionState;
     bool cyaSSLLogEnabled;
+    uint8_t api_selected;
 
     uint64_t testStart;
     uint64_t dnsComplete;
